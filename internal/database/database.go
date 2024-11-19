@@ -52,6 +52,7 @@ func InitDB() *gorm.DB {
 		&models.Category{},
 		&models.Currency{},
 		&models.PaymentMethod{},
+		&models.BillingCycle{},
 		&models.Subscription{},
 	)
 	if err != nil {
@@ -72,7 +73,7 @@ func seedDefaultData(db *gorm.DB) {
 	for _, category := range models.DefaultCategories {
 		var count int64
 		db.Model(&models.Category{}).
-			Where("name = ? AND is_default = ?", category.Name, true).
+			Where("name = ? AND system_defined = ?", category.Name, true).
 			Count(&count)
 
 		if count == 0 {
@@ -89,6 +90,18 @@ func seedDefaultData(db *gorm.DB) {
 
 		if count == 0 {
 			db.Create(&currency)
+		}
+	}
+
+	// Seed default billing cycles if they don't exist
+	for _, billingCycle := range models.DefaultBillingCycles {
+		var count int64
+		db.Model(&models.BillingCycle{}).
+			Where("name = ? AND system_defined = ?", billingCycle.Name, true).
+			Count(&count)
+
+		if count == 0 {
+			db.Create(&billingCycle)
 		}
 	}
 }

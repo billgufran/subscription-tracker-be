@@ -16,10 +16,11 @@ type Subscription struct {
 	PaymentMethod   PaymentMethod `gorm:"foreignKey:PaymentMethodID"`
 	CurrencyID      ULID          `gorm:"type:char(26);not null"`
 	Currency        Currency      `gorm:"foreignKey:CurrencyID"`
+	BillingCycleID  ULID          `gorm:"type:char(26);not null"`
+	BillingCycle    BillingCycle  `gorm:"foreignKey:BillingCycleID"`
 	Name            string        `gorm:"not null"`
 	Description     string
 	Amount          float64   `gorm:"type:decimal(10,2);not null"`
-	BillingCycle    string    `gorm:"not null"`
 	NextBillingDate time.Time `gorm:"not null"`
 	ReminderDays    int       `gorm:"default:7"`
 	Active          bool      `gorm:"default:true"`

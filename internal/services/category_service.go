@@ -35,10 +35,10 @@ func (s *CategoryService) Create(req *CreateCategoryRequest, userID models.ULID)
 	}
 
 	category := &models.Category{
-		ID:        models.NewULID(),
-		Name:      req.Name,
-		UserID:    &userID,
-		IsDefault: false,
+		ID:            models.NewULID(),
+		Name:          req.Name,
+		UserID:        &userID,
+		SystemDefined: false,
 	}
 
 	if err := s.categoryRepo.Create(category); err != nil {
@@ -60,7 +60,7 @@ func (s *CategoryService) Update(id models.ULID, req *UpdateCategoryRequest, use
 	}
 
 	// Check if it's a default category
-	if category.IsDefault {
+	if category.SystemDefined {
 		return nil, fmt.Errorf("cannot edit default category")
 	}
 
@@ -95,7 +95,7 @@ func (s *CategoryService) Delete(id models.ULID, userID models.ULID) error {
 	}
 
 	// Check if it's a default category
-	if category.IsDefault {
+	if category.SystemDefined {
 		return fmt.Errorf("cannot delete default category")
 	}
 
