@@ -20,7 +20,6 @@ type Category struct {
 
 var DefaultCategories = []Category{
 	{Name: "Streaming", IsDefault: true},
-	{Name: "Software", IsDefault: true},
 	{Name: "Gaming", IsDefault: true},
 	{Name: "Music", IsDefault: true},
 	{Name: "Cloud Storage", IsDefault: true},
