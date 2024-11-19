@@ -20,7 +20,7 @@ func (r *UserRepository) Create(user *models.User) error {
 
 func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 	var user models.User
-	err := r.db.Where("email = ?", email).First(&user).Error
+	err := r.db.Where("email = $1", email).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 
 func (r *UserRepository) EmailExists(email string) (bool, error) {
 	var count int64
-	err := r.db.Model(&models.User{}).Where("email = ?", email).Count(&count).Error
+	err := r.db.Model(&models.User{}).Where("email = $1", email).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
