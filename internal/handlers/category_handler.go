@@ -41,3 +41,20 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, utils.SuccessResponse(category))
 }
+
+func (h *CategoryHandler) GetAll(c *gin.Context) {
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		return
+	}
+
+	categories, err := h.categoryService.GetAll(userID.(models.ULID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrorResponse(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.SuccessResponse(categories))
+}

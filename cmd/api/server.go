@@ -50,6 +50,7 @@ func (s *Server) setupRoutes() {
 	protected.Use(middleware.AuthMiddleware())
 	{
 		// Category routes
+		protected.GET("/categories", categoryHandler.GetAll)
 		protected.POST("/categories", categoryHandler.Create)
 	}
 }

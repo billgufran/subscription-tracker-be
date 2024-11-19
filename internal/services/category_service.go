@@ -43,3 +43,7 @@ func (s *CategoryService) Create(req *CreateCategoryRequest, userID models.ULID)
 
 	return category, nil
 }
+
+func (s *CategoryService) GetAll(userID models.ULID) ([]models.Category, error) {
+	return s.categoryRepo.GetAllForUser(userID)
+}
