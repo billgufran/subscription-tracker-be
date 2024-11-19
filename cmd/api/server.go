@@ -29,20 +29,24 @@ func (s *Server) setupRoutes() {
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(s.db)
 	categoryRepo := repository.NewCategoryRepository(s.db)
+	currencyRepo := repository.NewCurrencyRepository(s.db)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo)
 	categoryService := services.NewCategoryService(categoryRepo)
+	currencyService := services.NewCurrencyService(currencyRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
+	currencyHandler := handlers.NewCurrencyHandler(currencyService)
 
 	// Public routes
 	public := s.router.Group("/api/v1")
 	{
 		public.POST("/auth/register", authHandler.Register)
 		public.POST("/auth/login", authHandler.Login)
+		public.GET("/currencies", currencyHandler.GetAll)
 	}
 
 	// Protected routes
