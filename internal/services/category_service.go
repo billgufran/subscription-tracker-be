@@ -20,7 +20,7 @@ func NewCategoryService(categoryRepo *repository.CategoryRepository) *CategorySe
 	}
 }
 
-func (s *CategoryService) Create(req *CreateCategoryRequest, userID uint) (*models.Category, error) {
+func (s *CategoryService) Create(req *CreateCategoryRequest, userID models.ULID) (*models.Category, error) {
 	// Check if category already exists for this user or as default
 	exists, err := s.categoryRepo.ExistsByNameAndUser(req.Name, userID)
 	if err != nil {
@@ -31,6 +31,7 @@ func (s *CategoryService) Create(req *CreateCategoryRequest, userID uint) (*mode
 	}
 
 	category := &models.Category{
+		ID:        models.NewULID(),
 		Name:      req.Name,
 		UserID:    &userID,
 		IsDefault: false,

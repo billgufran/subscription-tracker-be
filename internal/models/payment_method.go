@@ -16,8 +16,8 @@ const (
 )
 
 type PaymentMethod struct {
-	ID        uint              `gorm:"primaryKey"`
-	UserID    uint              `gorm:"not null"`
+	ID        ULID              `gorm:"primaryKey;type:char(26)"`
+	UserID    ULID              `gorm:"type:char(26);not null"`
 	User      User              `gorm:"foreignKey:UserID"`
 	Name      string            `gorm:"not null"`
 	Type      PaymentMethodType `gorm:"not null;type:varchar(20)"`

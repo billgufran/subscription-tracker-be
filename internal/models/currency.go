@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Currency struct {
-	ID        uint   `gorm:"primaryKey"`
+	ID        ULID   `gorm:"primaryKey;type:char(26)"`
 	Code      string `gorm:"type:char(3);uniqueIndex;not null"`
 	Name      string `gorm:"type:varchar(50);not null"`
 	Symbol    string `gorm:"type:varchar(5);not null"`

@@ -12,6 +12,7 @@ import (
 )
 
 func InitDB() *gorm.DB {
+	log.Println("Starting database initialization...")
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		os.Getenv("DB_HOST"),
@@ -22,12 +23,30 @@ func InitDB() *gorm.DB {
 		os.Getenv("DB_SSL_MODE"),
 	)
 
+	log.Printf("Connecting to database with DSN: %s", dsn)
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
+	log.Println("Successfully connected to database")
+
+	// Register custom types. It will set the ULID to the field if it is empty.
+	db.Callback().Create().Before("gorm:create").Register("set_ulid", func(tx *gorm.DB) {
+		if tx.Statement.Schema != nil {
+			for _, field := range tx.Statement.Schema.Fields {
+				if field.FieldType.Name() == "ULID" {
+					_, isZero := field.ValueOf(tx.Statement.Context, tx.Statement.ReflectValue)
+					if isZero {
+						field.Set(tx.Statement.Context, tx.Statement.ReflectValue, models.NewULID())
+					}
+				}
+			}
+		}
+	})
 
 	// Auto-migrate the schema
+	log.Println("Starting database migration...")
 	err = db.AutoMigrate(
 		&models.User{},
 		&models.Category{},
@@ -38,9 +57,12 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
+	log.Println("Database migration completed successfully")
 
 	// Seed default data
+	log.Println("Starting to seed default data...")
 	seedDefaultData(db)
+	log.Println("Default data seeding completed")
 
 	return db
 }

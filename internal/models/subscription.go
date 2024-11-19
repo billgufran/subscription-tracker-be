@@ -7,14 +7,14 @@ import (
 )
 
 type Subscription struct {
-	ID              uint          `gorm:"primaryKey"`
-	UserID          uint          `gorm:"not null"`
+	ID              ULID          `gorm:"primaryKey;type:char(26)"`
+	UserID          ULID          `gorm:"type:char(26);not null"`
 	User            User          `gorm:"foreignKey:UserID"`
-	CategoryID      uint          `gorm:"not null"`
+	CategoryID      ULID          `gorm:"type:char(26);not null"`
 	Category        Category      `gorm:"foreignKey:CategoryID"`
-	PaymentMethodID uint          `gorm:"not null"`
+	PaymentMethodID ULID          `gorm:"type:char(26);not null"`
 	PaymentMethod   PaymentMethod `gorm:"foreignKey:PaymentMethodID"`
-	CurrencyID      uint          `gorm:"not null"`
+	CurrencyID      ULID          `gorm:"type:char(26);not null"`
 	Currency        Currency      `gorm:"foreignKey:CurrencyID"`
 	Name            string        `gorm:"not null"`
 	Description     string

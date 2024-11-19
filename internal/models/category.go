@@ -7,11 +7,12 @@ import (
 )
 
 type Category struct {
-	ID        uint   `gorm:"primaryKey"`
+	ID        ULID   `gorm:"primaryKey;type:char(26)"`
 	Name      string `gorm:"not null"`
 	IsDefault bool   `gorm:"default:false"`
-	UserID    *uint  `gorm:"index"` // Nullable for default categories
-	User      *User  `gorm:"foreignKey:UserID"`
+	// Use pointers because default categories don't have a user
+	UserID    *ULID `gorm:"type:char(26);index"` // Nullable for default categories
+	User      *User `gorm:"foreignKey:UserID"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`

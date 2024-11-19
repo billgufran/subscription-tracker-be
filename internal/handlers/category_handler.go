@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"subscription-tracker/internal/models"
 	"subscription-tracker/internal/services"
 	"subscription-tracker/internal/utils"
 
@@ -32,7 +33,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 		return
 	}
 
-	category, err := h.categoryService.Create(&req, userID.(uint))
+	category, err := h.categoryService.Create(&req, userID.(models.ULID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.ErrorResponse(err.Error()))
 		return
