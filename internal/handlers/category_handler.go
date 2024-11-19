@@ -58,3 +58,42 @@ func (h *CategoryHandler) GetAll(c *gin.Context) {
 
 	c.JSON(http.StatusOK, utils.SuccessResponse(categories))
 }
+
+func (h *CategoryHandler) Update(c *gin.Context) {
+	// Get category ID from URL
+	var categoryID models.ULID
+	if err := categoryID.UnmarshalJSON([]byte(`"` + c.Param("id") + `"`)); err != nil {
+		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid category ID"))
+		return
+	}
+
+	// Get user ID from context
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		return
+	}
+
+	// Parse request body
+	var req services.UpdateCategoryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+		return
+	}
+
+	// Update the category
+	category, err := h.categoryService.Update(categoryID, &req, userID.(models.ULID))
+	if err != nil {
+		switch err.Error() {
+		case "category not found":
+			c.JSON(http.StatusNotFound, utils.ErrorResponse(err.Error()))
+		case "cannot edit default category":
+			c.JSON(http.StatusForbidden, utils.ErrorResponse(err.Error()))
+		default:
+			c.JSON(http.StatusBadRequest, utils.ErrorResponse(err.Error()))
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.SuccessResponse(category))
+}

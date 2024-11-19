@@ -10,10 +10,12 @@ import (
 
 type ULID ulid.ULID
 
+// Used behind the scenes by GORM. Value implements the driver.Valuer interface.
 func (u ULID) Value() (driver.Value, error) {
 	return ulid.ULID(u).String(), nil
 }
 
+// Used behind the scenes by GORM. Scan implements the sql.Scanner interface.
 func (u *ULID) Scan(src interface{}) error {
 	switch src := src.(type) {
 	case string:

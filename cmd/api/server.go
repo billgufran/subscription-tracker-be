@@ -52,6 +52,7 @@ func (s *Server) setupRoutes() {
 		// Category routes
 		protected.GET("/categories", categoryHandler.GetAll)
 		protected.POST("/categories", categoryHandler.Create)
+		protected.PUT("/categories/:id", categoryHandler.Update)
 	}
 }
 
