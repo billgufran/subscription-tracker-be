@@ -86,3 +86,23 @@ func (s *CategoryService) Update(id models.ULID, req *UpdateCategoryRequest, use
 
 	return category, nil
 }
+
+func (s *CategoryService) Delete(id models.ULID, userID models.ULID) error {
+	// Get the existing category
+	category, err := s.categoryRepo.GetByID(id)
+	if err != nil {
+		return fmt.Errorf("category not found")
+	}
+
+	// Check if it's a default category
+	if category.IsDefault {
+		return fmt.Errorf("cannot delete default category")
+	}
+
+	// Check if the category belongs to the user
+	if category.UserID == nil || *category.UserID != userID {
+		return fmt.Errorf("category not found")
+	}
+
+	return s.categoryRepo.Delete(category)
+}

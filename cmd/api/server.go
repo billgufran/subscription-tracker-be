@@ -53,6 +53,7 @@ func (s *Server) setupRoutes() {
 		protected.GET("/categories", categoryHandler.GetAll)
 		protected.POST("/categories", categoryHandler.Create)
 		protected.PUT("/categories/:id", categoryHandler.Update)
+		protected.DELETE("/categories/:id", categoryHandler.Delete)
 	}
 }
 

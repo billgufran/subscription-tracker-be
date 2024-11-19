@@ -58,14 +58,6 @@ func (r *CategoryRepository) Update(category *models.Category) error {
 	return r.db.Save(category).Error
 }
 
-func (r *CategoryRepository) ExistsWithNameExcludingID(name string, userID models.ULID, excludeID models.ULID) (bool, error) {
-	var count int64
-	err := r.db.Model(&models.Category{}).
-		Where("name = $1 AND (user_id = $2 OR is_default = $3) AND id != $4",
-			name, userID, true, excludeID).
-		Count(&count).Error
-	if err != nil {
-		return false, err
-	}
-	return count > 0, nil
+func (r *CategoryRepository) Delete(category *models.Category) error {
+	return r.db.Delete(category).Error
 }
