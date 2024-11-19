@@ -28,12 +28,15 @@ func NewServer(db *gorm.DB) *Server {
 func (s *Server) setupRoutes() {
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(s.db)
+	categoryRepo := repository.NewCategoryRepository(s.db)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo)
+	categoryService := services.NewCategoryService(categoryRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
+	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
 	// Public routes
 	public := s.router.Group("/api/v1")
@@ -46,7 +49,8 @@ func (s *Server) setupRoutes() {
 	protected := s.router.Group("/api/v1")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		// Add protected routes here later
+		// Category routes
+		protected.POST("/categories", categoryHandler.Create)
 	}
 }
 
