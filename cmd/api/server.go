@@ -30,16 +30,19 @@ func (s *Server) setupRoutes() {
 	userRepo := repository.NewUserRepository(s.db)
 	categoryRepo := repository.NewCategoryRepository(s.db)
 	currencyRepo := repository.NewCurrencyRepository(s.db)
+	billingCycleRepo := repository.NewBillingCycleRepository(s.db)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo)
 	categoryService := services.NewCategoryService(categoryRepo)
 	currencyService := services.NewCurrencyService(currencyRepo)
+	billingCycleService := services.NewBillingCycleService(billingCycleRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 	currencyHandler := handlers.NewCurrencyHandler(currencyService)
+	billingCycleHandler := handlers.NewBillingCycleHandler(billingCycleService)
 
 	// Public routes
 	public := s.router.Group("/api/v1")
@@ -54,10 +57,22 @@ func (s *Server) setupRoutes() {
 	protected.Use(middleware.AuthMiddleware())
 	{
 		// Category routes
-		protected.GET("/categories", categoryHandler.GetAll)
-		protected.POST("/categories", categoryHandler.Create)
-		protected.PUT("/categories/:id", categoryHandler.Update)
-		protected.DELETE("/categories/:id", categoryHandler.Delete)
+		categories := protected.Group("/categories")
+		{
+			categories.GET("/", categoryHandler.GetAll)
+			categories.POST("/", categoryHandler.Create)
+			categories.PUT("/:id", categoryHandler.Update)
+			categories.DELETE("/:id", categoryHandler.Delete)
+		}
+
+		// Billing cycle routes
+		billingCycles := protected.Group("/billing-cycles")
+		{
+			billingCycles.POST("/", billingCycleHandler.Create)
+			billingCycles.GET("/", billingCycleHandler.GetAll)
+			billingCycles.PUT("/:id", billingCycleHandler.Update)
+			billingCycles.DELETE("/:id", billingCycleHandler.Delete)
+		}
 	}
 }
 

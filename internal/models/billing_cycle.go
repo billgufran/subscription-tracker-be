@@ -11,6 +11,8 @@ type BillingCycle struct {
 	Name          string `gorm:"not null"`
 	Days          int    `gorm:"not null"`
 	SystemDefined bool   `gorm:"not null;default:false"`
+	UserID        *ULID  `gorm:"type:char(26);index"`
+	User          *User  `gorm:"foreignKey:UserID"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	DeletedAt     gorm.DeletedAt `gorm:"index"`
