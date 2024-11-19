@@ -35,7 +35,6 @@ func (s *CategoryService) Create(req *CreateCategoryRequest, userID models.ULID)
 	}
 
 	category := &models.Category{
-		ID:            models.NewULID(),
 		Name:          req.Name,
 		UserID:        &userID,
 		SystemDefined: false,
