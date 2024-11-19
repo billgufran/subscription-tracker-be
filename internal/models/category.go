@@ -17,7 +17,6 @@ type Category struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-// Default categories
 var DefaultCategories = []Category{
 	{Name: "Streaming", IsDefault: true},
 	{Name: "Software", IsDefault: true},
@@ -26,4 +25,5 @@ var DefaultCategories = []Category{
 	{Name: "Cloud Storage", IsDefault: true},
 	{Name: "News", IsDefault: true},
 	{Name: "Fitness", IsDefault: true},
+	{Name: "Productivity Tools", IsDefault: true},
 }

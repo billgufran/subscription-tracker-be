@@ -10,10 +10,14 @@ type Currency struct {
 	CreatedAt time.Time
 }
 
-// Default currencies
 var DefaultCurrencies = []Currency{
 	{Code: "USD", Name: "US Dollar", Symbol: "$"},
 	{Code: "EUR", Name: "Euro", Symbol: "€"},
 	{Code: "GBP", Name: "British Pound", Symbol: "£"},
 	{Code: "JPY", Name: "Japanese Yen", Symbol: "¥"},
+	{Code: "SGD", Name: "Singapore Dollar", Symbol: "S$"},
+	{Code: "AUD", Name: "Australian Dollar", Symbol: "A$"},
+	{Code: "KRW", Name: "South Korean Won", Symbol: "₩"},
+	{Code: "IDR", Name: "Indonesian Rupiah", Symbol: "Rp"},
+	{Code: "CNY", Name: "Chinese Yuan", Symbol: "¥"},
 }
