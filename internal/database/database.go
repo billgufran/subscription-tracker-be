@@ -22,7 +22,7 @@ func InitDB(cfg *config.Config) *gorm.DB {
 	}
 	log.Println("Successfully connected to database")
 
-	// Register custom types. It will set the ULID to the field if it is empty.
+	// Register custom types to gorm. It will set the ULID to the field if it is empty.
 	db.Callback().Create().Before("gorm:create").Register("set_ulid", func(tx *gorm.DB) {
 		if tx.Statement.Schema != nil {
 			for _, field := range tx.Statement.Schema.Fields {

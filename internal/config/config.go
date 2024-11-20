@@ -67,6 +67,7 @@ func loadDatabaseConfig() DatabaseConfig {
 	}
 }
 
+// DatabaseConfig GetDSN returns the Data Source Name (DSN) for the database.
 func (c *DatabaseConfig) GetDSN() string {
 	if c.URL != "" {
 		return c.URL
@@ -77,7 +78,6 @@ func (c *DatabaseConfig) GetDSN() string {
 	)
 }
 
-// Helper functions
 func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value

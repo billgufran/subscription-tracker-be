@@ -4,6 +4,7 @@ import (
 	"log"
 	"subscription-tracker/internal/config"
 	"subscription-tracker/internal/database"
+	"subscription-tracker/internal/server"
 
 	"github.com/joho/godotenv"
 )
@@ -20,12 +21,11 @@ func main() {
 	// Initialize database
 	db := database.InitDB(cfg)
 
-	// Create server with config
-	server := NewServer(db, cfg)
+	// Create and start server
+	srv := server.New(db, cfg)
 
-	// Start server
 	log.Printf("Server starting on port %s", cfg.Server.Port)
-	if err := server.Start(":" + cfg.Server.Port); err != nil {
+	if err := srv.Start(":" + cfg.Server.Port); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}
 }
