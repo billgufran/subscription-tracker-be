@@ -32,6 +32,7 @@ func (s *Server) setupRoutes() {
 	currencyRepo := repository.NewCurrencyRepository(s.db)
 	billingCycleRepo := repository.NewBillingCycleRepository(s.db)
 	subscriptionRepo := repository.NewSubscriptionRepository(s.db)
+	paymentMethodRepo := repository.NewPaymentMethodRepository(s.db)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo)
@@ -44,6 +45,7 @@ func (s *Server) setupRoutes() {
 		currencyRepo,
 		billingCycleRepo,
 	)
+	paymentMethodService := services.NewPaymentMethodService(paymentMethodRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
@@ -51,6 +53,7 @@ func (s *Server) setupRoutes() {
 	currencyHandler := handlers.NewCurrencyHandler(currencyService)
 	billingCycleHandler := handlers.NewBillingCycleHandler(billingCycleService)
 	subscriptionHandler := handlers.NewSubscriptionHandler(subscriptionService)
+	paymentMethodHandler := handlers.NewPaymentMethodHandler(paymentMethodService)
 
 	// Public routes
 	public := s.router.Group("/api/v1")
@@ -80,6 +83,15 @@ func (s *Server) setupRoutes() {
 			billingCycles.GET("/", billingCycleHandler.GetAll)
 			billingCycles.PUT("/:id", billingCycleHandler.Update)
 			billingCycles.DELETE("/:id", billingCycleHandler.Delete)
+		}
+
+		// Payment method routes
+		paymentMethods := protected.Group("/payment-methods")
+		{
+			paymentMethods.POST("/", paymentMethodHandler.Create)
+			paymentMethods.GET("/", paymentMethodHandler.GetAll)
+			paymentMethods.PUT("/:id", paymentMethodHandler.Update)
+			paymentMethods.DELETE("/:id", paymentMethodHandler.Delete)
 		}
 
 		// Subscription routes

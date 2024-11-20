@@ -13,7 +13,20 @@ const (
 	PaymentMethodTypeDebitCard     PaymentMethodType = "debit_card"
 	PaymentMethodTypeBankAccount   PaymentMethodType = "bank_account"
 	PaymentMethodTypeDigitalWallet PaymentMethodType = "digital_wallet"
+	PaymentMethodTypeOther         PaymentMethodType = "other"
 )
+
+func IsValidPaymentMethodType(pmType PaymentMethodType) bool {
+	switch pmType {
+	case PaymentMethodTypeCreditCard,
+		PaymentMethodTypeDebitCard,
+		PaymentMethodTypeBankAccount,
+		PaymentMethodTypeDigitalWallet,
+		PaymentMethodTypeOther:
+		return true
+	}
+	return false
+}
 
 type PaymentMethod struct {
 	ID        ULID              `gorm:"primaryKey;type:char(26)"`
