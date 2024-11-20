@@ -5,6 +5,8 @@ import (
 	"subscription-tracker/internal/models"
 	"subscription-tracker/internal/repository"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type SubscriptionService struct {
@@ -76,4 +78,31 @@ func (s *SubscriptionService) Create(req *CreateSubscriptionRequest, userID mode
 	}
 
 	return subscription, nil
+}
+
+func (s *SubscriptionService) GetAll(userID models.ULID) ([]models.Subscription, error) {
+	return s.subscriptionRepo.GetAll(userID)
+}
+
+func (s *SubscriptionService) GetByID(id, userID models.ULID) (*models.Subscription, error) {
+	subscription, err := s.subscriptionRepo.GetByID(id, userID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("subscription not found")
+		}
+		return nil, err
+	}
+	return subscription, nil
+}
+
+func (s *SubscriptionService) GetByCategory(categoryID, userID models.ULID) ([]models.Subscription, error) {
+	return s.subscriptionRepo.GetByCategory(categoryID, userID)
+}
+
+func (s *SubscriptionService) GetByBillingCycle(billingCycleID, userID models.ULID) ([]models.Subscription, error) {
+	return s.subscriptionRepo.GetByBillingCycle(billingCycleID, userID)
+}
+
+func (s *SubscriptionService) GetByPaymentMethod(paymentMethodID, userID models.ULID) ([]models.Subscription, error) {
+	return s.subscriptionRepo.GetByPaymentMethod(paymentMethodID, userID)
 }

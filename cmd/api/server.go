@@ -98,6 +98,11 @@ func (s *Server) setupRoutes() {
 		subscriptions := protected.Group("/subscriptions")
 		{
 			subscriptions.POST("/", subscriptionHandler.Create)
+			subscriptions.GET("/", subscriptionHandler.GetAll)
+			subscriptions.GET("/:id", subscriptionHandler.GetByID)
+			subscriptions.GET("/category/:categoryId", subscriptionHandler.GetByCategory)
+			subscriptions.GET("/billing-cycle/:billingCycleId", subscriptionHandler.GetByBillingCycle)
+			subscriptions.GET("/payment-method/:paymentMethodId", subscriptionHandler.GetByPaymentMethod)
 		}
 	}
 }
