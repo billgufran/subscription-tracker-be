@@ -22,3 +22,12 @@ func (r *CurrencyRepository) GetAll() ([]models.Currency, error) {
 	}
 	return currencies, nil
 }
+
+func (r *CurrencyRepository) GetByID(id models.ULID) (*models.Currency, error) {
+	var currency models.Currency
+	err := r.db.Where("id = $1", id).First(&currency).Error
+	if err != nil {
+		return nil, err
+	}
+	return &currency, nil
+}

@@ -10,10 +10,11 @@ import (
 )
 
 type SubscriptionService struct {
-	subscriptionRepo *repository.SubscriptionRepository
-	categoryRepo     *repository.CategoryRepository
-	currencyRepo     *repository.CurrencyRepository
-	billingCycleRepo *repository.BillingCycleRepository
+	subscriptionRepo  *repository.SubscriptionRepository
+	categoryRepo      *repository.CategoryRepository
+	currencyRepo      *repository.CurrencyRepository
+	billingCycleRepo  *repository.BillingCycleRepository
+	paymentMethodRepo *repository.PaymentMethodRepository
 }
 
 type CreateSubscriptionRequest struct {
@@ -46,13 +47,55 @@ func NewSubscriptionService(
 	categoryRepo *repository.CategoryRepository,
 	currencyRepo *repository.CurrencyRepository,
 	billingCycleRepo *repository.BillingCycleRepository,
+	paymentMethodRepo *repository.PaymentMethodRepository,
 ) *SubscriptionService {
 	return &SubscriptionService{
-		subscriptionRepo: subscriptionRepo,
-		categoryRepo:     categoryRepo,
-		currencyRepo:     currencyRepo,
-		billingCycleRepo: billingCycleRepo,
+		subscriptionRepo:  subscriptionRepo,
+		categoryRepo:      categoryRepo,
+		currencyRepo:      currencyRepo,
+		billingCycleRepo:  billingCycleRepo,
+		paymentMethodRepo: paymentMethodRepo,
 	}
+}
+
+func (s *SubscriptionService) validateReferences(
+	categoryID, currencyID, billingCycleID, paymentMethodID models.ULID,
+	userID models.ULID,
+) error {
+	// Validate category
+	category, err := s.categoryRepo.GetByID(categoryID)
+	if err != nil {
+		return fmt.Errorf("invalid category ID")
+	}
+	if !category.SystemDefined && (category.UserID == nil || *category.UserID != userID) {
+		return fmt.Errorf("invalid category ID")
+	}
+
+	// Validate billing cycle
+	billingCycle, err := s.billingCycleRepo.GetByID(billingCycleID)
+	if err != nil {
+		return fmt.Errorf("invalid billing cycle ID")
+	}
+	if !billingCycle.SystemDefined && (billingCycle.UserID == nil || *billingCycle.UserID != userID) {
+		return fmt.Errorf("invalid billing cycle ID")
+	}
+
+	// Validate payment method
+	paymentMethod, err := s.paymentMethodRepo.GetByID(paymentMethodID)
+	if err != nil {
+		return fmt.Errorf("invalid payment method ID")
+	}
+	if paymentMethod.UserID != userID {
+		return fmt.Errorf("invalid payment method ID")
+	}
+
+	// Validate currency (just check existence since currencies are system-wide)
+	_, err = s.currencyRepo.GetByID(currencyID)
+	if err != nil {
+		return fmt.Errorf("invalid currency ID")
+	}
+
+	return nil
 }
 
 func (s *SubscriptionService) Create(req *CreateSubscriptionRequest, userID models.ULID) (*models.Subscription, error) {
@@ -71,8 +114,11 @@ func (s *SubscriptionService) Create(req *CreateSubscriptionRequest, userID mode
 		return nil, fmt.Errorf("invalid payment method ID")
 	}
 
+	if err := s.validateReferences(categoryID, currencyID, billingCycleID, paymentMethodID, userID); err != nil {
+		return nil, err
+	}
+
 	subscription := &models.Subscription{
-		ID:              models.NewULID(),
 		UserID:          userID,
 		Name:            req.Name,
 		Description:     req.Description,
@@ -145,7 +191,10 @@ func (s *SubscriptionService) Update(id models.ULID, req *UpdateSubscriptionRequ
 		return nil, fmt.Errorf("invalid payment method ID")
 	}
 
-	// Update fields
+	if err := s.validateReferences(categoryID, currencyID, billingCycleID, paymentMethodID, userID); err != nil {
+		return nil, err
+	}
+
 	subscription.Name = req.Name
 	subscription.Description = req.Description
 	subscription.Amount = req.Amount
