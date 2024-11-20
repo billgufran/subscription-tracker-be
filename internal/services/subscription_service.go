@@ -6,6 +6,8 @@ import (
 	"subscription-tracker/internal/repository"
 	"time"
 
+	"subscription-tracker/internal/utils"
+
 	"gorm.io/gorm"
 )
 
@@ -65,34 +67,34 @@ func (s *SubscriptionService) validateReferences(
 	// Validate category
 	category, err := s.categoryRepo.GetByID(categoryID)
 	if err != nil {
-		return fmt.Errorf("invalid category ID")
+		return utils.NewNotFoundError("category")
 	}
 	if !category.SystemDefined && (category.UserID == nil || *category.UserID != userID) {
-		return fmt.Errorf("invalid category ID")
+		return utils.NewForbiddenError("category does not belong to user")
 	}
 
 	// Validate billing cycle
 	billingCycle, err := s.billingCycleRepo.GetByID(billingCycleID)
 	if err != nil {
-		return fmt.Errorf("invalid billing cycle ID")
+		return utils.NewNotFoundError("billing cycle")
 	}
 	if !billingCycle.SystemDefined && (billingCycle.UserID == nil || *billingCycle.UserID != userID) {
-		return fmt.Errorf("invalid billing cycle ID")
+		return utils.NewForbiddenError("billing cycle does not belong to user")
 	}
 
 	// Validate payment method
 	paymentMethod, err := s.paymentMethodRepo.GetByID(paymentMethodID)
 	if err != nil {
-		return fmt.Errorf("invalid payment method ID")
+		return utils.NewNotFoundError("payment method")
 	}
 	if paymentMethod.UserID != userID {
-		return fmt.Errorf("invalid payment method ID")
+		return utils.NewForbiddenError("payment method does not belong to user")
 	}
 
 	// Validate currency (just check existence since currencies are system-wide)
 	_, err = s.currencyRepo.GetByID(currencyID)
 	if err != nil {
-		return fmt.Errorf("invalid currency ID")
+		return utils.NewNotFoundError("currency")
 	}
 
 	return nil
@@ -102,16 +104,16 @@ func (s *SubscriptionService) Create(req *CreateSubscriptionRequest, userID mode
 	// Parse IDs
 	var categoryID, currencyID, billingCycleID, paymentMethodID models.ULID
 	if err := categoryID.UnmarshalJSON([]byte(`"` + req.CategoryID + `"`)); err != nil {
-		return nil, fmt.Errorf("invalid category ID")
+		return nil, utils.NewValidationError("categoryId", "invalid format")
 	}
 	if err := currencyID.UnmarshalJSON([]byte(`"` + req.CurrencyID + `"`)); err != nil {
-		return nil, fmt.Errorf("invalid currency ID")
+		return nil, utils.NewValidationError("currencyId", "invalid format")
 	}
 	if err := billingCycleID.UnmarshalJSON([]byte(`"` + req.BillingCycleID + `"`)); err != nil {
-		return nil, fmt.Errorf("invalid billing cycle ID")
+		return nil, utils.NewValidationError("billingCycleId", "invalid format")
 	}
 	if err := paymentMethodID.UnmarshalJSON([]byte(`"` + req.PaymentMethodID + `"`)); err != nil {
-		return nil, fmt.Errorf("invalid payment method ID")
+		return nil, utils.NewValidationError("paymentMethodId", "invalid format")
 	}
 
 	if err := s.validateReferences(categoryID, currencyID, billingCycleID, paymentMethodID, userID); err != nil {
@@ -147,7 +149,7 @@ func (s *SubscriptionService) GetByID(id, userID models.ULID) (*models.Subscript
 	subscription, err := s.subscriptionRepo.GetByID(id, userID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("subscription not found")
+			return nil, utils.NewNotFoundError("subscription")
 		}
 		return nil, err
 	}

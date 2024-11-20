@@ -60,32 +60,25 @@ func (h *BillingCycleHandler) GetAll(c *gin.Context) {
 func (h *BillingCycleHandler) Update(c *gin.Context) {
 	var billingCycleID models.ULID
 	if err := billingCycleID.UnmarshalJSON([]byte(`"` + c.Param("id") + `"`)); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid billing cycle ID"))
+		utils.HandleHttpError(c, utils.NewValidationError("id", "invalid billing cycle ID"))
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		utils.HandleHttpError(c, utils.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
 	var req services.UpdateBillingCycleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+		utils.HandleHttpError(c, utils.NewValidationError("body", "invalid request body"))
 		return
 	}
 
 	billingCycle, err := h.billingCycleService.Update(billingCycleID, &req, userID.(models.ULID))
 	if err != nil {
-		switch err.Error() {
-		case "billing cycle not found":
-			c.JSON(http.StatusNotFound, utils.ErrorResponse(err.Error()))
-		case "cannot edit system-defined billing cycle":
-			c.JSON(http.StatusForbidden, utils.ErrorResponse(err.Error()))
-		default:
-			c.JSON(http.StatusBadRequest, utils.ErrorResponse(err.Error()))
-		}
+		utils.HandleHttpError(c, err)
 		return
 	}
 

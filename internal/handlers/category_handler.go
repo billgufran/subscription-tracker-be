@@ -22,20 +22,19 @@ func NewCategoryHandler(categoryService *services.CategoryService) *CategoryHand
 func (h *CategoryHandler) Create(c *gin.Context) {
 	var req services.CreateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+		utils.HandleHttpError(c, utils.NewValidationError("body", "invalid request body"))
 		return
 	}
 
-	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		utils.HandleHttpError(c, utils.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
 	category, err := h.categoryService.Create(&req, userID.(models.ULID))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse(err.Error()))
+		utils.HandleHttpError(c, err)
 		return
 	}
 
@@ -99,30 +98,20 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 }
 
 func (h *CategoryHandler) Delete(c *gin.Context) {
-	// Get category ID from URL
 	var categoryID models.ULID
 	if err := categoryID.UnmarshalJSON([]byte(`"` + c.Param("id") + `"`)); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid category ID"))
+		utils.HandleHttpError(c, utils.NewValidationError("id", "invalid category ID"))
 		return
 	}
 
-	// Get user ID from context
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		utils.HandleHttpError(c, utils.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
-	err := h.categoryService.Delete(categoryID, userID.(models.ULID))
-	if err != nil {
-		switch err.Error() {
-		case "category not found":
-			c.JSON(http.StatusNotFound, utils.ErrorResponse(err.Error()))
-		case "cannot delete default category":
-			c.JSON(http.StatusForbidden, utils.ErrorResponse(err.Error()))
-		default:
-			c.JSON(http.StatusInternalServerError, utils.ErrorResponse(err.Error()))
-		}
+	if err := h.categoryService.Delete(categoryID, userID.(models.ULID)); err != nil {
+		utils.HandleHttpError(c, err)
 		return
 	}
 

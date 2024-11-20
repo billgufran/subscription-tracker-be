@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"subscription-tracker/internal/models"
 	"subscription-tracker/internal/repository"
+	"subscription-tracker/internal/utils"
+
+	"gorm.io/gorm"
 )
 
 type CategoryService struct {
@@ -25,13 +28,12 @@ func NewCategoryService(categoryRepo *repository.CategoryRepository) *CategorySe
 }
 
 func (s *CategoryService) Create(req *CreateCategoryRequest, userID models.ULID) (*models.Category, error) {
-	// Check if category already exists for this user or as default
 	exists, err := s.categoryRepo.ExistsByNameAndUser(req.Name, userID, nil)
 	if err != nil {
 		return nil, err
 	}
 	if exists {
-		return nil, fmt.Errorf("category with name '%s' already exists", req.Name)
+		return nil, utils.NewValidationError("name", fmt.Sprintf("category with name '%s' already exists", req.Name))
 	}
 
 	category := &models.Category{
@@ -52,32 +54,23 @@ func (s *CategoryService) GetAll(userID models.ULID) ([]models.Category, error) 
 }
 
 func (s *CategoryService) Update(id models.ULID, req *UpdateCategoryRequest, userID models.ULID) (*models.Category, error) {
-	// Get the existing category
-	category, err := s.categoryRepo.GetByID(id)
+	category, err := s.GetByID(id, userID)
 	if err != nil {
-		return nil, fmt.Errorf("category not found")
+		return nil, err
 	}
 
-	// Check if it's a default category
 	if category.SystemDefined {
-		return nil, fmt.Errorf("cannot edit default category")
+		return nil, utils.NewForbiddenError("system-defined categories cannot be modified")
 	}
 
-	// Check if the category belongs to the user
-	if category.UserID == nil || *category.UserID != userID {
-		return nil, fmt.Errorf("category not found")
-	}
-
-	// Check if the new name conflicts with existing categories
 	exists, err := s.categoryRepo.ExistsByNameAndUser(req.Name, userID, &id)
 	if err != nil {
 		return nil, err
 	}
 	if exists {
-		return nil, fmt.Errorf("category with name '%s' already exists", req.Name)
+		return nil, utils.NewValidationError("name", fmt.Sprintf("category with name '%s' already exists", req.Name))
 	}
 
-	// Update the category
 	category.Name = req.Name
 	if err := s.categoryRepo.Update(category); err != nil {
 		return nil, err
@@ -87,21 +80,30 @@ func (s *CategoryService) Update(id models.ULID, req *UpdateCategoryRequest, use
 }
 
 func (s *CategoryService) Delete(id models.ULID, userID models.ULID) error {
-	// Get the existing category
-	category, err := s.categoryRepo.GetByID(id)
+	category, err := s.GetByID(id, userID)
 	if err != nil {
-		return fmt.Errorf("category not found")
+		return err
 	}
 
-	// Check if it's a default category
 	if category.SystemDefined {
-		return fmt.Errorf("cannot delete default category")
-	}
-
-	// Check if the category belongs to the user
-	if category.UserID == nil || *category.UserID != userID {
-		return fmt.Errorf("category not found")
+		return utils.NewForbiddenError("system-defined categories cannot be deleted")
 	}
 
 	return s.categoryRepo.Delete(category)
+}
+
+func (s *CategoryService) GetByID(id, userID models.ULID) (*models.Category, error) {
+	category, err := s.categoryRepo.GetByID(id)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, utils.NewNotFoundError("category")
+		}
+		return nil, err
+	}
+
+	if !category.SystemDefined && (category.UserID == nil || *category.UserID != userID) {
+		return nil, utils.NewForbiddenError("category does not belong to user")
+	}
+
+	return category, nil
 }

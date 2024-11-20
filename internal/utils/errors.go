@@ -1,65 +1,103 @@
 package utils
 
-import "errors"
+// AppError is the base error type for our application
+type AppError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Field   string `json:"field,omitempty"`
+}
 
-// Common errors
-var (
-	ErrNotFound           = errors.New("resource not found")
-	ErrUnauthorized       = errors.New("unauthorized")
-	ErrForbidden          = errors.New("forbidden")
-	ErrBadRequest         = errors.New("bad request")
-	ErrInvalidInput       = errors.New("invalid input")
-	ErrDuplicateEntry     = errors.New("duplicate entry")
-	ErrInternalServer     = errors.New("internal server error")
-	ErrValidation         = errors.New("validation error")
-	ErrInvalidCredentials = errors.New("invalid credentials")
+func (e *AppError) Error() string {
+	return e.Message
+}
+
+// Error codes
+const (
+	CodeNotFound      = "NOT_FOUND"
+	CodeUnauthorized  = "UNAUTHORIZED"
+	CodeForbidden     = "FORBIDDEN"
+	CodeBadRequest    = "BAD_REQUEST"
+	CodeValidation    = "VALIDATION_ERROR"
+	CodeDuplicate     = "DUPLICATE_ENTRY"
+	CodeInternalError = "INTERNAL_ERROR"
 )
 
-// DatabaseError wraps database-related errors
-type DatabaseError struct {
-	Err error
-}
-
-func (e *DatabaseError) Error() string {
-	return "database error: " + e.Err.Error()
-}
-
-// ValidationError holds validation errors
-type ValidationError struct {
-	Field   string
-	Message string
-}
-
-// ValidationErrors is a slice of ValidationError
-type ValidationErrors []ValidationError
-
-func (ve ValidationErrors) Error() string {
-	if len(ve) == 0 {
-		return "validation failed"
-	}
-	return ve[0].Message
-}
-
-// NewValidationError creates a new validation error
-func NewValidationError(field, message string) ValidationError {
-	return ValidationError{
-		Field:   field,
+// Error constructors
+func NewAppError(code, message string) *AppError {
+	return &AppError{
+		Code:    code,
 		Message: message,
 	}
 }
 
-// IsNotFoundError checks if the error is a not found error
-func IsNotFoundError(err error) bool {
-	return errors.Is(err, ErrNotFound)
+func NewNotFoundError(resource string) *AppError {
+	return &AppError{
+		Code:    CodeNotFound,
+		Message: resource + " not found",
+	}
 }
 
-// IsDuplicateError checks if the error is a duplicate entry error
-func IsDuplicateError(err error) bool {
-	return errors.Is(err, ErrDuplicateEntry)
+func NewUnauthorizedError(message string) *AppError {
+	return &AppError{
+		Code:    CodeUnauthorized,
+		Message: message,
+	}
 }
 
-// IsValidationError checks if the error is a validation error
-func IsValidationError(err error) bool {
-	_, ok := err.(ValidationErrors)
-	return ok || errors.Is(err, ErrValidation)
+func NewForbiddenError(message string) *AppError {
+	return &AppError{
+		Code:    CodeForbidden,
+		Message: message,
+	}
+}
+
+func NewBadRequestError(message string) *AppError {
+	return &AppError{
+		Code:    CodeBadRequest,
+		Message: message,
+	}
+}
+
+func NewValidationError(field, message string) *AppError {
+	return &AppError{
+		Code:    CodeValidation,
+		Message: message,
+		Field:   field,
+	}
+}
+
+func NewDuplicateEntryError(resource string) *AppError {
+	return &AppError{
+		Code:    CodeDuplicate,
+		Message: resource + " already exists",
+	}
+}
+
+func NewInternalError(message string) *AppError {
+	return &AppError{
+		Code:    CodeInternalError,
+		Message: message,
+	}
+}
+
+// Helper functions
+func IsNotFound(err error) bool {
+	if appErr, ok := err.(*AppError); ok {
+		return appErr.Code == CodeNotFound
+	}
+	return false
+}
+
+func IsValidation(err error) bool {
+	if appErr, ok := err.(*AppError); ok {
+		return appErr.Code == CodeValidation
+	}
+	return false
+}
+
+func IsForbidden(err error) bool {
+	if appErr, ok := err.(*AppError); ok {
+		return appErr.Code == CodeForbidden
+	}
+	return false
 }

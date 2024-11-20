@@ -22,19 +22,19 @@ func NewPaymentMethodHandler(paymentMethodService *services.PaymentMethodService
 func (h *PaymentMethodHandler) Create(c *gin.Context) {
 	var req services.CreatePaymentMethodRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+		utils.HandleHttpError(c, utils.NewValidationError("body", "invalid request body"))
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		utils.HandleHttpError(c, utils.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
 	paymentMethod, err := h.paymentMethodService.Create(&req, userID.(models.ULID))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse(err.Error()))
+		utils.HandleHttpError(c, err)
 		return
 	}
 
@@ -93,24 +93,18 @@ func (h *PaymentMethodHandler) Update(c *gin.Context) {
 func (h *PaymentMethodHandler) Delete(c *gin.Context) {
 	var paymentMethodID models.ULID
 	if err := paymentMethodID.UnmarshalJSON([]byte(`"` + c.Param("id") + `"`)); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid payment method ID"))
+		utils.HandleHttpError(c, utils.NewValidationError("id", "invalid payment method ID"))
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		utils.HandleHttpError(c, utils.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
-	err := h.paymentMethodService.Delete(paymentMethodID, userID.(models.ULID))
-	if err != nil {
-		switch err.Error() {
-		case "payment method not found":
-			c.JSON(http.StatusNotFound, utils.ErrorResponse(err.Error()))
-		default:
-			c.JSON(http.StatusInternalServerError, utils.ErrorResponse(err.Error()))
-		}
+	if err := h.paymentMethodService.Delete(paymentMethodID, userID.(models.ULID)); err != nil {
+		utils.HandleHttpError(c, err)
 		return
 	}
 

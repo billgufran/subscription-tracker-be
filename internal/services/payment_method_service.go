@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"subscription-tracker/internal/models"
 	"subscription-tracker/internal/repository"
+	"subscription-tracker/internal/utils"
 )
 
 type PaymentMethodService struct {
@@ -30,7 +31,7 @@ func NewPaymentMethodService(paymentMethodRepo *repository.PaymentMethodReposito
 
 func (s *PaymentMethodService) Create(req *CreatePaymentMethodRequest, userID models.ULID) (*models.PaymentMethod, error) {
 	if !models.IsValidPaymentMethodType(req.Type) {
-		return nil, fmt.Errorf("invalid payment method type: %s", req.Type)
+		return nil, utils.NewValidationError("type", "invalid payment method type")
 	}
 
 	exists, err := s.paymentMethodRepo.ExistsByNameTypeAndUser(req.Name, req.Type, userID, nil)
@@ -38,7 +39,7 @@ func (s *PaymentMethodService) Create(req *CreatePaymentMethodRequest, userID mo
 		return nil, err
 	}
 	if exists {
-		return nil, fmt.Errorf("payment method with name '%s' and type '%s' already exists", req.Name, req.Type)
+		return nil, utils.NewValidationError("name", "payment method with this name and type already exists")
 	}
 
 	paymentMethod := &models.PaymentMethod{

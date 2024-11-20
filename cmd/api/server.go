@@ -44,6 +44,7 @@ func (s *Server) setupRoutes() {
 		categoryRepo,
 		currencyRepo,
 		billingCycleRepo,
+		paymentMethodRepo,
 	)
 	paymentMethodService := services.NewPaymentMethodService(paymentMethodRepo)
 

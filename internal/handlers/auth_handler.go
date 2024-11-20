@@ -22,31 +22,31 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req services.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+		utils.HandleHttpError(c, utils.NewValidationError("body", "invalid request body"))
 		return
 	}
 
-	resp, err := h.authService.Login(&req)
+	response, err := h.authService.Login(&req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, utils.ErrorResponse(err.Error()))
+		utils.HandleHttpError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, utils.SuccessResponse(resp))
+	c.JSON(http.StatusOK, utils.SuccessResponse(response))
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req services.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+		utils.HandleHttpError(c, utils.NewValidationError("body", "invalid request body"))
 		return
 	}
 
-	resp, err := h.authService.Register(&req)
+	response, err := h.authService.Register(&req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse(err.Error()))
+		utils.HandleHttpError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, utils.SuccessResponse(resp))
+	c.JSON(http.StatusCreated, utils.SuccessResponse(response))
 }

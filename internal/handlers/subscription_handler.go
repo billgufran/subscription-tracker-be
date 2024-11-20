@@ -34,7 +34,7 @@ func (h *SubscriptionHandler) Create(c *gin.Context) {
 
 	subscription, err := h.subscriptionService.Create(&req, userID.(models.ULID))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.ErrorResponse(err.Error()))
+		utils.HandleHttpError(c, err)
 		return
 	}
 

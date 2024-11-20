@@ -1,11 +1,10 @@
 package services
 
 import (
-	"errors"
-
 	"subscription-tracker/internal/auth"
 	"subscription-tracker/internal/models"
 	"subscription-tracker/internal/repository"
+	"subscription-tracker/internal/utils"
 )
 
 type AuthService struct {
@@ -37,16 +36,16 @@ func NewAuthService(userRepo *repository.UserRepository) *AuthService {
 func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	user, err := s.userRepo.GetByEmail(req.Email)
 	if err != nil {
-		return nil, errors.New("invalid credentials")
+		return nil, utils.NewValidationError("credentials", "invalid credentials")
 	}
 
 	if err := auth.VerifyPassword(user.PasswordHash, req.Password); err != nil {
-		return nil, errors.New("invalid credentials")
+		return nil, utils.NewValidationError("credentials", "invalid credentials")
 	}
 
 	token, err := auth.GenerateToken(user)
 	if err != nil {
-		return nil, err
+		return nil, utils.NewInternalError("failed to generate token")
 	}
 
 	return &AuthResponse{
@@ -62,7 +61,7 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		return nil, err
 	}
 	if exists {
-		return nil, errors.New("email already registered")
+		return nil, utils.NewValidationError("email", "email already registered")
 	}
 
 	// Hash password

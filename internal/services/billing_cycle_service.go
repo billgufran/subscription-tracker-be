@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"subscription-tracker/internal/models"
 	"subscription-tracker/internal/repository"
+	"subscription-tracker/internal/utils"
+
+	"gorm.io/gorm"
 )
 
 type BillingCycleService struct {
@@ -32,7 +35,7 @@ func (s *BillingCycleService) Create(req *CreateBillingCycleRequest, userID mode
 		return nil, err
 	}
 	if exists {
-		return nil, fmt.Errorf("billing cycle with name '%s' already exists", req.Name)
+		return nil, utils.NewValidationError("name", fmt.Sprintf("billing cycle with name '%s' already exists", req.Name))
 	}
 
 	billingCycle := &models.BillingCycle{
@@ -53,18 +56,30 @@ func (s *BillingCycleService) GetAll(userID models.ULID) ([]models.BillingCycle,
 	return s.billingCycleRepo.GetAllForUser(userID)
 }
 
-func (s *BillingCycleService) Update(id models.ULID, req *UpdateBillingCycleRequest, userID models.ULID) (*models.BillingCycle, error) {
+func (s *BillingCycleService) GetByID(id, userID models.ULID) (*models.BillingCycle, error) {
 	billingCycle, err := s.billingCycleRepo.GetByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("billing cycle not found")
+		if err == gorm.ErrRecordNotFound {
+			return nil, utils.NewNotFoundError("billing cycle")
+		}
+		return nil, err
+	}
+
+	if !billingCycle.SystemDefined && (billingCycle.UserID == nil || *billingCycle.UserID != userID) {
+		return nil, utils.NewForbiddenError("billing cycle does not belong to user")
+	}
+
+	return billingCycle, nil
+}
+
+func (s *BillingCycleService) Update(id models.ULID, req *UpdateBillingCycleRequest, userID models.ULID) (*models.BillingCycle, error) {
+	billingCycle, err := s.GetByID(id, userID)
+	if err != nil {
+		return nil, err
 	}
 
 	if billingCycle.SystemDefined {
-		return nil, fmt.Errorf("cannot edit system-defined billing cycle")
-	}
-
-	if billingCycle.UserID == nil || *billingCycle.UserID != userID {
-		return nil, fmt.Errorf("billing cycle not found")
+		return nil, utils.NewForbiddenError("system-defined billing cycles cannot be modified")
 	}
 
 	exists, err := s.billingCycleRepo.ExistsByNameAndUser(req.Name, userID, &id)
