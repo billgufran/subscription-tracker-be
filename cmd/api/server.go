@@ -31,18 +31,26 @@ func (s *Server) setupRoutes() {
 	categoryRepo := repository.NewCategoryRepository(s.db)
 	currencyRepo := repository.NewCurrencyRepository(s.db)
 	billingCycleRepo := repository.NewBillingCycleRepository(s.db)
+	subscriptionRepo := repository.NewSubscriptionRepository(s.db)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo)
 	categoryService := services.NewCategoryService(categoryRepo)
 	currencyService := services.NewCurrencyService(currencyRepo)
 	billingCycleService := services.NewBillingCycleService(billingCycleRepo)
+	subscriptionService := services.NewSubscriptionService(
+		subscriptionRepo,
+		categoryRepo,
+		currencyRepo,
+		billingCycleRepo,
+	)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 	currencyHandler := handlers.NewCurrencyHandler(currencyService)
 	billingCycleHandler := handlers.NewBillingCycleHandler(billingCycleService)
+	subscriptionHandler := handlers.NewSubscriptionHandler(subscriptionService)
 
 	// Public routes
 	public := s.router.Group("/api/v1")
@@ -72,6 +80,12 @@ func (s *Server) setupRoutes() {
 			billingCycles.GET("/", billingCycleHandler.GetAll)
 			billingCycles.PUT("/:id", billingCycleHandler.Update)
 			billingCycles.DELETE("/:id", billingCycleHandler.Delete)
+		}
+
+		// Subscription routes
+		subscriptions := protected.Group("/subscriptions")
+		{
+			subscriptions.POST("/", subscriptionHandler.Create)
 		}
 	}
 }
