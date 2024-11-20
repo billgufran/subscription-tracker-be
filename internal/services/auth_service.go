@@ -2,6 +2,7 @@ package services
 
 import (
 	"subscription-tracker/internal/auth"
+	"subscription-tracker/internal/config"
 	"subscription-tracker/internal/models"
 	"subscription-tracker/internal/repository"
 	"subscription-tracker/internal/utils"
@@ -9,6 +10,7 @@ import (
 
 type AuthService struct {
 	userRepo *repository.UserRepository
+	config   *config.Config
 }
 
 type LoginRequest struct {
@@ -27,9 +29,10 @@ type AuthResponse struct {
 	User  *models.User `json:"user"`
 }
 
-func NewAuthService(userRepo *repository.UserRepository) *AuthService {
+func NewAuthService(userRepo *repository.UserRepository, cfg *config.Config) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
+		config:   cfg,
 	}
 }
 
@@ -43,7 +46,7 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 		return nil, utils.NewValidationError("credentials", "invalid credentials")
 	}
 
-	token, err := auth.GenerateToken(user)
+	token, err := auth.GenerateToken(user, s.config)
 	if err != nil {
 		return nil, utils.NewInternalError("failed to generate token")
 	}
@@ -82,7 +85,7 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	}
 
 	// Generate token
-	token, err := auth.GenerateToken(user)
+	token, err := auth.GenerateToken(user, s.config)
 	if err != nil {
 		return nil, err
 	}

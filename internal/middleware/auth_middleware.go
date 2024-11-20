@@ -5,12 +5,13 @@ import (
 	"strings"
 
 	"subscription-tracker/internal/auth"
+	"subscription-tracker/internal/config"
 	"subscription-tracker/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -26,7 +27,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := auth.ValidateToken(parts[1])
+		claims, err := auth.ValidateToken(parts[1], cfg)
 		if err != nil {
 			utils.HandleHttpError(c, err)
 			c.Abort()

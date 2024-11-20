@@ -1,6 +1,7 @@
 package main
 
 import (
+	"subscription-tracker/internal/config"
 	"subscription-tracker/internal/handlers"
 	"subscription-tracker/internal/middleware"
 	"subscription-tracker/internal/repository"
@@ -13,12 +14,14 @@ import (
 type Server struct {
 	router *gin.Engine
 	db     *gorm.DB
+	config *config.Config
 }
 
-func NewServer(db *gorm.DB) *Server {
+func NewServer(db *gorm.DB, cfg *config.Config) *Server {
 	server := &Server{
 		router: gin.Default(),
 		db:     db,
+		config: cfg,
 	}
 
 	server.setupRoutes()
@@ -34,8 +37,8 @@ func (s *Server) setupRoutes() {
 	subscriptionRepo := repository.NewSubscriptionRepository(s.db)
 	paymentMethodRepo := repository.NewPaymentMethodRepository(s.db)
 
-	// Initialize services
-	authService := services.NewAuthService(userRepo)
+	// Initialize services with config
+	authService := services.NewAuthService(userRepo, s.config)
 	categoryService := services.NewCategoryService(categoryRepo)
 	currencyService := services.NewCurrencyService(currencyRepo)
 	billingCycleService := services.NewBillingCycleService(billingCycleRepo)
@@ -66,7 +69,7 @@ func (s *Server) setupRoutes() {
 
 	// Protected routes
 	protected := s.router.Group("/api/v1")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(middleware.AuthMiddleware(s.config))
 	{
 		// Category routes
 		categories := protected.Group("/categories")

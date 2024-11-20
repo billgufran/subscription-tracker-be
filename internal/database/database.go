@@ -1,27 +1,18 @@
 package database
 
 import (
-	"fmt"
 	"log"
-	"os"
 
+	"subscription-tracker/internal/config"
 	"subscription-tracker/internal/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func InitDB() *gorm.DB {
+func InitDB(cfg *config.Config) *gorm.DB {
 	log.Println("Starting database initialization...")
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_SSL_MODE"),
-	)
+	dsn := cfg.Database.GetDSN()
 
 	log.Printf("Connecting to database with DSN: %s", dsn)
 
