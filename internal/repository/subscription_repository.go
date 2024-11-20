@@ -59,3 +59,11 @@ func (r *SubscriptionRepository) GetByPaymentMethod(paymentMethodID, userID mode
 		Find(&subscriptions).Error
 	return subscriptions, err
 }
+
+func (r *SubscriptionRepository) Update(subscription *models.Subscription) error {
+	return r.db.Save(subscription).Error
+}
+
+func (r *SubscriptionRepository) Delete(subscription *models.Subscription) error {
+	return r.db.Delete(subscription).Error
+}

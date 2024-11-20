@@ -148,3 +148,63 @@ func (h *SubscriptionHandler) GetByPaymentMethod(c *gin.Context) {
 
 	c.JSON(http.StatusOK, utils.SuccessResponse(subscriptions))
 }
+
+func (h *SubscriptionHandler) Update(c *gin.Context) {
+	var subscriptionID models.ULID
+	if err := subscriptionID.UnmarshalJSON([]byte(`"` + c.Param("id") + `"`)); err != nil {
+		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid subscription ID"))
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		return
+	}
+
+	var req services.UpdateSubscriptionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+		return
+	}
+
+	subscription, err := h.subscriptionService.Update(subscriptionID, &req, userID.(models.ULID))
+	if err != nil {
+		switch err.Error() {
+		case "subscription not found":
+			c.JSON(http.StatusNotFound, utils.ErrorResponse(err.Error()))
+		default:
+			c.JSON(http.StatusBadRequest, utils.ErrorResponse(err.Error()))
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.SuccessResponse(subscription))
+}
+
+func (h *SubscriptionHandler) Delete(c *gin.Context) {
+	var subscriptionID models.ULID
+	if err := subscriptionID.UnmarshalJSON([]byte(`"` + c.Param("id") + `"`)); err != nil {
+		c.JSON(http.StatusBadRequest, utils.ErrorResponse("Invalid subscription ID"))
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, utils.ErrorResponse("User not found in context"))
+		return
+	}
+
+	err := h.subscriptionService.Delete(subscriptionID, userID.(models.ULID))
+	if err != nil {
+		switch err.Error() {
+		case "subscription not found":
+			c.JSON(http.StatusNotFound, utils.ErrorResponse(err.Error()))
+		default:
+			c.JSON(http.StatusInternalServerError, utils.ErrorResponse(err.Error()))
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.SuccessResponse(nil))
+}

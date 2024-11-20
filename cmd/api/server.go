@@ -103,6 +103,8 @@ func (s *Server) setupRoutes() {
 			subscriptions.GET("/category/:categoryId", subscriptionHandler.GetByCategory)
 			subscriptions.GET("/billing-cycle/:billingCycleId", subscriptionHandler.GetByBillingCycle)
 			subscriptions.GET("/payment-method/:paymentMethodId", subscriptionHandler.GetByPaymentMethod)
+			subscriptions.PUT("/:id", subscriptionHandler.Update)
+			subscriptions.DELETE("/:id", subscriptionHandler.Delete)
 		}
 	}
 }
