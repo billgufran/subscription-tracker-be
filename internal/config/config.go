@@ -15,6 +15,7 @@ type Config struct {
 
 type ServerConfig struct {
 	Port string
+	Mode string
 }
 
 type DatabaseConfig struct {
@@ -36,7 +37,8 @@ type JWTConfig struct {
 func Load() *Config {
 	config := &Config{
 		Server: ServerConfig{
-			Port: getEnvOrDefault("PORT", "8080"), // Railway uses PORT
+			Port: getEnvOrDefault("PORT", "8080"),      // Railway uses PORT
+			Mode: getEnvOrDefault("GIN_MODE", "debug"), // Valid values: debug, release, test
 		},
 		Database: loadDatabaseConfig(),
 		JWT: JWTConfig{

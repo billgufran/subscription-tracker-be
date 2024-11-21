@@ -14,6 +14,8 @@ type Server struct {
 }
 
 func New(db *gorm.DB, cfg *config.Config) *Server {
+	gin.SetMode(cfg.Server.Mode)
+
 	server := &Server{
 		router: gin.Default(),
 		db:     db,
