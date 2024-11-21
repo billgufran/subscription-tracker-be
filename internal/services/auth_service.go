@@ -58,7 +58,6 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 }
 
 func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
-	// Check if user already exists
 	exists, err := s.userRepo.EmailExists(req.Email)
 	if err != nil {
 		return nil, err
@@ -67,13 +66,11 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		return nil, utils.NewValidationError("email", "email already registered")
 	}
 
-	// Hash password
 	hashedPassword, err := auth.HashPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create user
 	user := &models.User{
 		Name:         req.Name,
 		Email:        req.Email,
@@ -84,7 +81,6 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		return nil, err
 	}
 
-	// Generate token
 	token, err := auth.GenerateToken(user, s.config)
 	if err != nil {
 		return nil, err
