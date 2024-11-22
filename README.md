@@ -116,6 +116,7 @@ subscription-tracker/
 │       └── user_service.go
 ├── go.mod
 ├── go.sum
+├── .env.example
 └── README.md
 ```
 
@@ -171,6 +172,8 @@ subscription-tracker/
 This structure follows clean architecture principles, separating concerns into distinct layers (handlers → services → repositories → database) and keeping the code organized and maintainable.
 
 ## API Endpoints
+
+[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://god.gw.postman.com/run-collection/12319165-f292cb5d-dc53-4c32-9922-89f1b7b5cca3?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D12319165-f292cb5d-dc53-4c32-9922-89f1b7b5cca3%26entityType%3Dcollection%26workspaceId%3D763783dd-1bf3-4322-8f99-d3aedd133ee6)
 
 ### Authentication
 
